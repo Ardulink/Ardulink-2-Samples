@@ -1,0 +1,95 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ardulink</groupId>
+	<artifactId>parent</artifactId>
+	<version>2.1.1</version>
+	<packaging>pom</packaging>
+	<url>http://www.ardulink.org</url>
+
+	<name>Ardulink Project</name>
+	<description>A Java Open Source Project to control and coordinate several Arduino based boards at once</description>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Luciano Zu</name>
+			<email>luciano.zu@gmail.com</email>
+			<organization>Ardulink</organization>
+			<organizationUrl>http://www.ardulink.org</organizationUrl>
+		</developer>
+		<developer>
+			<name>Peter Fichtner</name>
+			<organization>Ardulink</organization>
+			<organizationUrl>http://www.ardulink.org</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/Ardulink/Ardulink-2-Samples</url>
+		<connection>scm:git:git//github.com:Ardulink/Ardulink-2-Samples.git</connection>
+		<developerConnection>scm:git:git@github.com:Ardulink/Ardulink-2-Samples.git</developerConnection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<compilerVersion>1.8</compilerVersion>
+		<maven.compiler.source>${compilerVersion}</maven.compiler.source>
+		<maven.compiler.target>${compilerVersion}</maven.compiler.target>
+		<args4j.version>2.33</args4j.version>
+		<slf4j.version>2.0.7</slf4j.version>
+	</properties>
+
+	<modules>
+		<module>example-datareceiver</module>
+		<module>example-uniqueid</module>
+		<module>example-buttonquest</module>
+		<module>example-joysticksmartcardriver</module>
+		<module>example-simplesmartcardriver</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.3.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>args4j</groupId>
+				<artifactId>args4j</artifactId>
+				<version>${args4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jdk14</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+</project>
