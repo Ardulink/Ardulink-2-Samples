@@ -22,6 +22,7 @@ import static org.ardulink.core.convenience.Links.setChoiceValues;
 import static org.ardulink.util.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +30,6 @@ import org.ardulink.core.Link;
 import org.ardulink.core.events.RplyEvent;
 import org.ardulink.core.linkmanager.LinkManager;
 import org.ardulink.core.qos.ResponseAwaiter;
-import org.ardulink.util.URIs;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -59,8 +59,7 @@ public class UniqueID {
 
 	private String sugestedUniqueID;
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(UniqueID.class);
+	private static final Logger logger = LoggerFactory.getLogger(UniqueID.class);
 
 	public static void main(String[] args) throws Exception {
 		new UniqueID().doMain(args);
@@ -87,23 +86,21 @@ public class UniqueID {
 			logger.info("Ok, now it should be ready...");
 
 			logger.info("Asking ID...");
-			RplyEvent rplyEvent = ResponseAwaiter.onLink(link)
-					.withTimeout(500, MILLISECONDS)
+			RplyEvent rplyEvent = ResponseAwaiter.onLink(link).withTimeout(500, MILLISECONDS)
 					.waitForResponse(sendUniqueIdCustomMsg(link));
-			
-			if(rplyEvent.isOk()) {
-				String uniqueID = checkNotNull(rplyEvent.getParameterValue(UNIQUE_ID_PARAMETER_VALUE_KEY), "Reply doesn't contain UniqueID").toString();
 
-				if(sugestedUniqueID.equals(uniqueID)) {
-					logger.info("Device hadn't an ID. Now it is set to: " + uniqueID);
-				} else {
-					logger.info("Device ID is: " + uniqueID);
-				}
-				
+			if (rplyEvent.isOk()) {
+				String uniqueID = checkNotNull(rplyEvent.getParameterValue(UNIQUE_ID_PARAMETER_VALUE_KEY),
+						"Reply doesn't contain UniqueID").toString();
+
+				boolean ok = sugestedUniqueID.equals(uniqueID);
+				String message = ok //
+						? "Device hadn't an ID. Now it is set to: " + uniqueID //
+						: "Device ID is: " + uniqueID;
+				logger.info(message);
 			} else {
 				logger.info("Something went wrong.");
 			}
-			
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
@@ -111,18 +108,15 @@ public class UniqueID {
 	}
 
 	private long sendUniqueIdCustomMsg(Link link) throws IOException {
-		return link.sendCustomMessage(GET_UNIQUE_ID_CUSTOM_MESSAGE,	getSuggestedUniqueID());
+		return link.sendCustomMessage(GET_UNIQUE_ID_CUSTOM_MESSAGE, getSuggestedUniqueID());
 	}
-	
+
 	private String getSuggestedUniqueID() {
-		sugestedUniqueID = UUID.randomUUID().toString();
-		return sugestedUniqueID;
+		return (sugestedUniqueID = UUID.randomUUID().toString());
 	}
 
 	private Link createLink() {
-		return setChoiceValues(
-				LinkManager.getInstance()
-						.getConfigurer(URIs.newURI(connString))).newLink();
+		return setChoiceValues(LinkManager.getInstance().getConfigurer(URI.create(connString))).newLink();
 	}
 
 }
