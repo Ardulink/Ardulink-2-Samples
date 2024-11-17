@@ -32,13 +32,13 @@
 
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-core-serial-jssc</artifactId>
+			<artifactId>ardulink-link-serial-jssc</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-core-proxy</artifactId>
+			<artifactId>ardulink-link-proxy</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>

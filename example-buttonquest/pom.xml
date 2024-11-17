@@ -33,7 +33,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-core-serial-jssc</artifactId>
+			<artifactId>ardulink-link-serial-jssc</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
