@@ -33,7 +33,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-core-bluetooth</artifactId>
+			<artifactId>ardulink-link-bluetooth</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
