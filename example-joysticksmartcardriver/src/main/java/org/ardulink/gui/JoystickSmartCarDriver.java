@@ -23,8 +23,6 @@ import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -73,7 +71,7 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 	private final JPanel buttonPanel;
 
 	/**
-	 * Launch the application. 
+	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
@@ -124,24 +122,13 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 		buttonPanel.add(connectionStatus);
 		linkables.add(connectionStatus);
 
-		btnConnect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				try {
-					setLink((genericConnectionPanel.createLink()));
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, e.getMessage(),
-							"Error", ERROR_MESSAGE);
-				}
+		btnConnect.addActionListener(e -> {
+			try {
+				setLink((genericConnectionPanel.createLink()));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, ex.getMessage(), "Error", ERROR_MESSAGE);
 			}
-
-			private LegacyLinkAdapter legacyAdapt(
-					org.ardulink.core.Link link) {
-				return new Link.LegacyLinkAdapter(link);
-			}
-
-
 		});
 
 		controlPanel = new JPanel();
@@ -176,7 +163,7 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 		if (delegate instanceof ConnectionBasedLink) {
 			((ConnectionBasedLink) delegate).addConnectionListener(this);
 		} else {
-			if(link == null || link == Link.NO_LINK) {
+			if (link == null || link == Link.NO_LINK) {
 				connectionLost();
 			} else {
 				reconnected();
@@ -202,4 +189,3 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 		btnDisconnect.setEnabled(false);
 	}
 }
-

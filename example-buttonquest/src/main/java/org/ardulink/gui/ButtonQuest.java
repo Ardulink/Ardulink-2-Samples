@@ -23,8 +23,6 @@ import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -41,7 +39,6 @@ import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.SignalButton;
 import org.ardulink.gui.customcomponents.ToggleSignalButton;
 import org.ardulink.legacy.Link;
-import org.ardulink.legacy.Link.LegacyLinkAdapter;
 import org.ardulink.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,21 +126,13 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
 		buttonPanel.add(connectionStatus);
 		linkables.add(connectionStatus);
-		btnConnect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				try {
-					setLink((genericConnectionPanel.createLink()));
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(ButtonQuest.this, e.getMessage(), "Error", ERROR_MESSAGE);
-				}
+		btnConnect.addActionListener(e -> {
+			try {
+				setLink((genericConnectionPanel.createLink()));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(ButtonQuest.this, ex.getMessage(), "Error", ERROR_MESSAGE);
 			}
-
-			private LegacyLinkAdapter legacyAdapt(org.ardulink.core.Link link) {
-				return new Link.LegacyLinkAdapter(link);
-			}
-
 		});
 
 		controlPanel = new JPanel();
@@ -202,7 +191,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		if (delegate instanceof ConnectionBasedLink) {
 			((ConnectionBasedLink) delegate).addConnectionListener(this);
 		} else {
-			if(link == null || link == Link.NO_LINK) {
+			if (link == null || link == Link.NO_LINK) {
 				connectionLost();
 			} else {
 				reconnected();
@@ -210,7 +199,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 		}
 		for (Linkable linkable : linkables) {
-			if(linkable == resultButton && link != null && link != Link.NO_LINK ) {
+			if (linkable == resultButton && link != null && link != Link.NO_LINK) {
 				linkable.setLink(new WaitReplyLink(link.getDelegate(), this, "result"));
 			} else {
 				linkable.setLink(link);

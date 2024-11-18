@@ -26,8 +26,6 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -81,14 +79,10 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 	private static final String RIGHT_ICON_NAME = "icons/arrow-right.png";
 	private static final String BACK_ICON_NAME = "icons/arrow-down.png";
 
-	private static final ImageIcon AHEAD_ICON = new ImageIcon(
-			SimpleSmartCarDriver.class.getResource(AHEAD_ICON_NAME));
-	private static final ImageIcon LEFT_ICON = new ImageIcon(
-			SimpleSmartCarDriver.class.getResource(LEFT_ICON_NAME));
-	private static final ImageIcon RIGHT_ICON = new ImageIcon(
-			SimpleSmartCarDriver.class.getResource(RIGHT_ICON_NAME));
-	private static final ImageIcon BACK_ICON = new ImageIcon(
-			SimpleSmartCarDriver.class.getResource(BACK_ICON_NAME));
+	private static final ImageIcon AHEAD_ICON = new ImageIcon(SimpleSmartCarDriver.class.getResource(AHEAD_ICON_NAME));
+	private static final ImageIcon LEFT_ICON = new ImageIcon(SimpleSmartCarDriver.class.getResource(LEFT_ICON_NAME));
+	private static final ImageIcon RIGHT_ICON = new ImageIcon(SimpleSmartCarDriver.class.getResource(RIGHT_ICON_NAME));
+	private static final ImageIcon BACK_ICON = new ImageIcon(SimpleSmartCarDriver.class.getResource(BACK_ICON_NAME));
 	private final JTabbedPane tabbedPane;
 	private final JPanel buttonPanel;
 
@@ -97,14 +91,14 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
-            try {
-                setLookAndFeel("Nimbus");
-                SimpleSmartCarDriver frame = new SimpleSmartCarDriver();
-                frame.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+			try {
+				setLookAndFeel("Nimbus");
+				SimpleSmartCarDriver frame = new SimpleSmartCarDriver();
+				frame.setVisible(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	/**
@@ -143,20 +137,12 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
 		buttonPanel.add(connectionStatus);
 		linkables.add(connectionStatus);
-		btnConnect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				try {
-					setLink(genericConnectionPanel.createLink());
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(SimpleSmartCarDriver.this, e.getMessage(),
-							"Error", ERROR_MESSAGE);
-				}
-			}
-
-			private LegacyLinkAdapter legacyAdapt(org.ardulink.core.Link link) {
-				return new Link.LegacyLinkAdapter(link);
+		btnConnect.addActionListener(e -> {
+			try {
+				setLink(genericConnectionPanel.createLink());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(SimpleSmartCarDriver.this, ex.getMessage(), "Error", ERROR_MESSAGE);
 			}
 		});
 
@@ -235,7 +221,7 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		if (delegate instanceof ConnectionBasedLink) {
 			((ConnectionBasedLink) delegate).addConnectionListener(this);
 		} else {
-			if(link == null || link == Link.NO_LINK) {
+			if (link == null || link == Link.NO_LINK) {
 				connectionLost();
 			} else {
 				reconnected();
