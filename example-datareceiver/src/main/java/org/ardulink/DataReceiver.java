@@ -117,7 +117,7 @@ public class DataReceiver {
 		return new Connection.ListenerAdapter() {
 			@Override
 			public void received(byte[] bytes) {
-				logger.info("Message from Arduino: %s", new String(bytes));
+				logger.info("Message from Arduino: {}", new String(bytes));
 			}
 		};
 	}

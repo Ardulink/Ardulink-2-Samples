@@ -53,40 +53,36 @@ import org.slf4j.LoggerFactory;
  * [adsense]
  *
  */
-public class JoystickSmartCarDriver extends JFrame implements
-		ConnectionListener, Linkable {
+public class JoystickSmartCarDriver extends JFrame implements ConnectionListener, Linkable {
 
 	private static final long serialVersionUID = 1402473246181814940L;
 
 	private static final Logger logger = LoggerFactory.getLogger(JoystickSmartCarDriver.class);
-	
-	private JPanel contentPane;
-	private Link link;
-	private List<Linkable> linkables = Lists.newArrayList();
 
-	private ConnectionPanel genericConnectionPanel;
-	private JButton btnConnect;
-	private JButton btnDisconnect;
-	private JPanel controlPanel;
-	private ModifiableJoystick joystick;
-	private MotorDriver motorDriver = new MotorDriver();
-	private JTabbedPane tabbedPane;
-	private JPanel buttonPanel;
+	private final JPanel contentPane;
+	private Link link;
+	private final List<Linkable> linkables = Lists.newArrayList();
+
+	private final ConnectionPanel genericConnectionPanel;
+	private final JButton btnConnect;
+	private final JButton btnDisconnect;
+	private final JPanel controlPanel;
+	private final ModifiableJoystick joystick;
+	private final MotorDriver motorDriver = new MotorDriver();
+	private final JTabbedPane tabbedPane;
+	private final JPanel buttonPanel;
 
 	/**
 	 * Launch the application. 
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					setLookAndFeel("Nimbus");
-					JoystickSmartCarDriver frame = new JoystickSmartCarDriver();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		EventQueue.invokeLater(() -> {
+			try {
+				setLookAndFeel("Nimbus");
+				JoystickSmartCarDriver frame = new JoystickSmartCarDriver();
+				frame.setVisible(true);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 	}
@@ -102,68 +98,63 @@ public class JoystickSmartCarDriver extends JFrame implements
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		
+
 		tabbedPane = new JTabbedPane(SwingConstants.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
-		
-				JPanel connectionPanel = new JPanel();
-				tabbedPane.addTab("Connection", null, connectionPanel, null);
-						connectionPanel.setLayout(new BorderLayout(0, 0));
-				
-						genericConnectionPanel = new ConnectionPanel();
-						connectionPanel.add(genericConnectionPanel, BorderLayout.CENTER);
-												
-												buttonPanel = new JPanel();
-												connectionPanel.add(buttonPanel, BorderLayout.SOUTH);
-												
-														btnConnect = new JButton("Connect");
-														buttonPanel.add(btnConnect);
-														
-																btnDisconnect = new JButton("Disconnect");
-																buttonPanel.add(btnDisconnect);
-																btnDisconnect.addActionListener(new ActionListener() {
-																	@Override
-																	public void actionPerformed(ActionEvent e) {
-																		disconnect();
-																	}
 
-																});
-																btnDisconnect.setEnabled(false);
-																
-																		ConnectionStatus connectionStatus = new ConnectionStatus();
-																		buttonPanel.add(connectionStatus);
-																		linkables.add(connectionStatus);
-														btnConnect.addActionListener(new ActionListener() {
-															@Override
-															public void actionPerformed(ActionEvent event) {
-																try {
-																	setLink((genericConnectionPanel.createLink()));
-																} catch (Exception e) {
-																	e.printStackTrace();
-																	JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, e.getMessage(),
-																			"Error", ERROR_MESSAGE);
-																}
-															}
+		JPanel connectionPanel = new JPanel();
+		tabbedPane.addTab("Connection", null, connectionPanel, null);
+		connectionPanel.setLayout(new BorderLayout(0, 0));
 
-															private LegacyLinkAdapter legacyAdapt(
-																	org.ardulink.core.Link link) {
-																return new Link.LegacyLinkAdapter(link);
-															}
+		genericConnectionPanel = new ConnectionPanel();
+		connectionPanel.add(genericConnectionPanel, BorderLayout.CENTER);
 
-															
-														});
-												
-														controlPanel = new JPanel();
-														tabbedPane.addTab("Control", null, controlPanel, null);
-														controlPanel.setLayout(new BorderLayout(0, 0));
-														
-																joystick = new ModifiableJoystick();
-																// not use Joystick link, PositionEvents will be captured and managed
-																// with a specific class
-																joystick.setLink(null);
-																joystick.setId("joy");
-																joystick.addPositionListener(motorDriver);
-																controlPanel.add(joystick, BorderLayout.CENTER);
+		buttonPanel = new JPanel();
+		connectionPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+		btnConnect = new JButton("Connect");
+		buttonPanel.add(btnConnect);
+
+		btnDisconnect = new JButton("Disconnect");
+		buttonPanel.add(btnDisconnect);
+		btnDisconnect.addActionListener(e -> disconnect());
+		btnDisconnect.setEnabled(false);
+
+		ConnectionStatus connectionStatus = new ConnectionStatus();
+		buttonPanel.add(connectionStatus);
+		linkables.add(connectionStatus);
+
+		btnConnect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				try {
+					setLink((genericConnectionPanel.createLink()));
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, e.getMessage(),
+							"Error", ERROR_MESSAGE);
+				}
+			}
+
+			private LegacyLinkAdapter legacyAdapt(
+					org.ardulink.core.Link link) {
+				return new Link.LegacyLinkAdapter(link);
+			}
+
+
+		});
+
+		controlPanel = new JPanel();
+		tabbedPane.addTab("Control", null, controlPanel, null);
+		controlPanel.setLayout(new BorderLayout(0, 0));
+
+		joystick = new ModifiableJoystick();
+		// not use Joystick link, PositionEvents will be captured and managed
+		// with a specific class
+		joystick.setLink(null);
+		joystick.setId("joy");
+		joystick.addPositionListener(motorDriver);
+		controlPanel.add(joystick, BorderLayout.CENTER);
 
 		linkables.add(motorDriver);
 
@@ -174,7 +165,7 @@ public class JoystickSmartCarDriver extends JFrame implements
 		logger.info("Connection status: {}", !this.link.disconnect());
 		setLink(Link.NO_LINK);
 	}
-	
+
 	@Override
 	public void setLink(Link link) {
 		org.ardulink.core.Link delegate = link.getDelegate();
@@ -190,7 +181,7 @@ public class JoystickSmartCarDriver extends JFrame implements
 			} else {
 				reconnected();
 			}
-			
+
 		}
 		for (Linkable linkable : linkables) {
 			linkable.setLink(link);

@@ -96,7 +96,7 @@ public class UniqueID {
 				boolean ok = sugestedUniqueID.equals(uniqueID);
 				String message = ok //
 						? "Device hadn't an ID. Now it is set to: " + uniqueID //
-						: "Device ID is: " + uniqueID;
+								: "Device ID is: " + uniqueID;
 				logger.info(message);
 			} else {
 				logger.info("Something went wrong.");

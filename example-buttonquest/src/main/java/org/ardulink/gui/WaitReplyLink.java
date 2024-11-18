@@ -16,9 +16,9 @@ import org.ardulink.legacy.Link.LegacyLinkAdapter;
 
 public class WaitReplyLink extends LegacyLinkAdapter {
 
-	private Component component;
-	private String key;
-	
+	private final Component component;
+	private final String key;
+
 	public WaitReplyLink(Link delegate, Component component, String key) {
 		super(delegate);
 		this.component = checkNotNull(component, "Component can't be null");
@@ -28,18 +28,17 @@ public class WaitReplyLink extends LegacyLinkAdapter {
 	@Override
 	public void sendCustomMessage(String... messages) {
 		try {
+			Link delegate = getDelegate();
+			RplyEvent rplyEvent = ResponseAwaiter.onLink(delegate) //
+					.withTimeout(500, MILLISECONDS) //
+					.waitForResponse(delegate.sendCustomMessage(messages));
 
-			
-			RplyEvent rplyEvent = ResponseAwaiter.onLink(getDelegate())
-					.withTimeout(500, MILLISECONDS)
-					.waitForResponse(getDelegate().sendCustomMessage(messages));
-			
-			JOptionPane.showMessageDialog(component, checkNotNull(rplyEvent.getParameterValue(key), "Reply doesn't contain %s key", key).toString());
+			JOptionPane.showMessageDialog(component,
+					checkNotNull(rplyEvent.getParameterValue(key), "Reply doesn't contain %s key", key).toString());
 		} catch (IOException e) {
 			throw propagate(e);
 		}
-		
+
 	}
-	
 
 }

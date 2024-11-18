@@ -60,38 +60,35 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 	private static final Logger logger = LoggerFactory.getLogger(ButtonQuest.class);
 
-	private JPanel contentPane;
+	private final JPanel contentPane;
 	private Link link;
-	private List<Linkable> linkables = Lists.newArrayList();
+	private final List<Linkable> linkables = Lists.newArrayList();
 
-	private ConnectionPanel genericConnectionPanel;
-	private JButton btnConnect;
-	private JButton btnDisconnect;
-	private JPanel controlPanel;
-	private JTabbedPane tabbedPane;
-	private JPanel buttonPanel;
-	private JPanel setupPanel;
-	private JPanel resultPanel;
-	private ToggleSignalButton button1;
-	private ToggleSignalButton button2;
-	private ToggleSignalButton button3;
-	private ToggleSignalButton button4;
-	private SignalButton resultButton;
+	private final ConnectionPanel genericConnectionPanel;
+	private final JButton btnConnect;
+	private final JButton btnDisconnect;
+	private final JPanel controlPanel;
+	private final JTabbedPane tabbedPane;
+	private final JPanel buttonPanel;
+	private final JPanel setupPanel;
+	private final JPanel resultPanel;
+	private final ToggleSignalButton button1;
+	private final ToggleSignalButton button2;
+	private final ToggleSignalButton button3;
+	private final ToggleSignalButton button4;
+	private final SignalButton resultButton;
 
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					setLookAndFeel("Nimbus");
-					ButtonQuest frame = new ButtonQuest();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		EventQueue.invokeLater(() -> {
+			try {
+				setLookAndFeel("Nimbus");
+				ButtonQuest frame = new ButtonQuest();
+				frame.setVisible(true);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 	}
@@ -126,13 +123,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 		btnDisconnect = new JButton("Disconnect");
 		buttonPanel.add(btnDisconnect);
-		btnDisconnect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				disconnect();
-			}
-
-		});
+		btnDisconnect.addActionListener(e -> disconnect());
 		btnDisconnect.setEnabled(false);
 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
@@ -169,7 +160,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 		resultPanel = new JPanel();
 		controlPanel.add(resultPanel, BorderLayout.SOUTH);
-		
+
 		resultButton = new SignalButton();
 		linkables.add(resultButton);
 		resultPanel.add(resultButton);
@@ -177,7 +168,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		resultButton.setButtonText("Get Result");
 		resultButton.setId("getResult");
 		resultButton.setValueVisible(false);
-		
+
 		setLink(Link.NO_LINK);
 	}
 
@@ -216,7 +207,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 			} else {
 				reconnected();
 			}
-			
+
 		}
 		for (Linkable linkable : linkables) {
 			if(linkable == resultButton && link != null && link != Link.NO_LINK ) {
