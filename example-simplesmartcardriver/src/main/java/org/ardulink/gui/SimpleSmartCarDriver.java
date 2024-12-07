@@ -148,10 +148,10 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 
 		controlPanel = new JPanel();
 		tabbedPane.addTab("Control", null, controlPanel, null);
-		GridBagLayout gbl_controlPanel = new GridBagLayout();
-		gbl_controlPanel.columnWeights = new double[] { 0.0, 0.0, 0.0 };
-		gbl_controlPanel.rowWeights = new double[] { 0.0, 0.0, 0.0 };
-		controlPanel.setLayout(gbl_controlPanel);
+		GridBagLayout gblControlPanel = new GridBagLayout();
+		gblControlPanel.columnWeights = new double[] { 0.0, 0.0, 0.0 };
+		gblControlPanel.rowWeights = new double[] { 0.0, 0.0, 0.0 };
+		controlPanel.setLayout(gblControlPanel);
 
 		btnAhead = new SignalButton();
 		btnAhead.setButtonText("Ahead");
@@ -160,12 +160,12 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		btnAhead.setValueLabel("Strength");
 		btnAhead.setIcon(AHEAD_ICON);
 		linkables.add(btnAhead);
-		GridBagConstraints gbc_btnUp = new GridBagConstraints();
-		gbc_btnUp.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnUp.insets = new Insets(0, 0, 0, 5);
-		gbc_btnUp.gridx = 1;
-		gbc_btnUp.gridy = 0;
-		controlPanel.add(btnAhead, gbc_btnUp);
+		GridBagConstraints gbcBtnUp = new GridBagConstraints();
+		gbcBtnUp.anchor = GridBagConstraints.NORTHWEST;
+		gbcBtnUp.insets = new Insets(0, 0, 0, 5);
+		gbcBtnUp.gridx = 1;
+		gbcBtnUp.gridy = 0;
+		controlPanel.add(btnAhead, gbcBtnUp);
 
 		btnLeft = new SignalButton();
 		btnLeft.setButtonText("Left");
@@ -174,12 +174,12 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		btnLeft.setValueLabel("Strength");
 		btnLeft.setIcon(LEFT_ICON);
 		linkables.add(btnLeft);
-		GridBagConstraints gbc_btnLeft = new GridBagConstraints();
-		gbc_btnLeft.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnLeft.insets = new Insets(0, 0, 0, 5);
-		gbc_btnLeft.gridx = 0;
-		gbc_btnLeft.gridy = 1;
-		controlPanel.add(btnLeft, gbc_btnLeft);
+		GridBagConstraints gbcBtnLeft = new GridBagConstraints();
+		gbcBtnLeft.anchor = GridBagConstraints.NORTHWEST;
+		gbcBtnLeft.insets = new Insets(0, 0, 0, 5);
+		gbcBtnLeft.gridx = 0;
+		gbcBtnLeft.gridy = 1;
+		controlPanel.add(btnLeft, gbcBtnLeft);
 
 		btnRight = new SignalButton();
 		btnRight.setButtonText("Right");
@@ -188,12 +188,12 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		btnRight.setValueLabel("Strength");
 		btnRight.setIcon(RIGHT_ICON);
 		linkables.add(btnRight);
-		GridBagConstraints gbc_btnRight = new GridBagConstraints();
-		gbc_btnRight.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnRight.insets = new Insets(0, 0, 0, 5);
-		gbc_btnRight.gridx = 2;
-		gbc_btnRight.gridy = 1;
-		controlPanel.add(btnRight, gbc_btnRight);
+		GridBagConstraints gbcBtnRight = new GridBagConstraints();
+		gbcBtnRight.anchor = GridBagConstraints.NORTHWEST;
+		gbcBtnRight.insets = new Insets(0, 0, 0, 5);
+		gbcBtnRight.gridx = 2;
+		gbcBtnRight.gridy = 1;
+		controlPanel.add(btnRight, gbcBtnRight);
 
 		btnBack = new SignalButton();
 		btnBack.setButtonText("Back");
@@ -202,11 +202,11 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		btnBack.setValueLabel("Strength");
 		btnBack.setIcon(BACK_ICON);
 		linkables.add(btnBack);
-		GridBagConstraints gbc_btnDown = new GridBagConstraints();
-		gbc_btnDown.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnDown.gridx = 1;
-		gbc_btnDown.gridy = 2;
-		controlPanel.add(btnBack, gbc_btnDown);
+		GridBagConstraints gbcBtnDown = new GridBagConstraints();
+		gbcBtnDown.anchor = GridBagConstraints.NORTHWEST;
+		gbcBtnDown.gridx = 1;
+		gbcBtnDown.gridy = 2;
+		controlPanel.add(btnBack, gbcBtnDown);
 
 		setLink(Link.NO_LINK);
 	}
