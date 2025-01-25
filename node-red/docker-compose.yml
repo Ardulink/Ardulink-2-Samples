@@ -1,0 +1,31 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    volumes:
+      - ./data/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+    networks:
+      - ardulink_mqtt_node_red_network
+
+  node-red:
+    image: nodered/node-red
+    container_name: node-red
+    ports:
+      - "1880:1880"
+    networks:
+      - ardulink_mqtt_node_red_network
+    volumes:
+      - ./data/nodered:/data
+      - ./data/nodered/start-nodered.sh:/usr/src/node-red/start.sh
+    entrypoint: ["/bin/bash", "/usr/src/node-red/start.sh"]
+    environment:
+      - NODE_RED_ENABLE_PROJECTS=true
+    depends_on:
+      - mosquitto
+
+networks:
+  ardulink_mqtt_node_red_network:
+    driver: bridge
+

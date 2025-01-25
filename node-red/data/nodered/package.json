@@ -1,0 +1,9 @@
+{
+    "name": "node-red-project",
+    "description": "Ardulink Example Project",
+    "version": "0.0.1",
+    "dependencies": {
+        "node-red-dashboard": "^3.6.5"
+    }
+}
+
