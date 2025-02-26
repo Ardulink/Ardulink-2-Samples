@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ardulink</groupId>
 	<artifactId>examples</artifactId>
-	<version>2.2.0</version>
+	<version>2.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<url>http://www.ardulink.org</url>
 
@@ -21,17 +21,31 @@
 
 	<developers>
 		<developer>
+			<name>Peter Fichtner</name>
+			<organization>Ardulink</organization>
+			<organizationUrl>http://www.ardulink.org</organizationUrl>
+			<roles>
+				<role>developer</role>
+				<role>maintainer</role>
+				<role>lead</role>
+				<role>architect</role>
+				<role>release manager</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
 			<name>Luciano Zu</name>
 			<email>luciano.zu@gmail.com</email>
 			<organization>Ardulink</organization>
 			<organizationUrl>http://www.ardulink.org</organizationUrl>
-		</developer>
-		<developer>
-			<name>Peter Fichtner</name>
-			<organization>Ardulink</organization>
-			<organizationUrl>http://www.ardulink.org</organizationUrl>
-		</developer>
-	</developers>
+			<roles>
+				<role>founder</role>
+				<role>former developer</role>
+			</roles>
+		</contributor>
+	</contributors>
 
 	<scm>
 		<url>https://github.com/Ardulink/Ardulink-2-Samples</url>
@@ -56,7 +70,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<compilerVersion>1.8</compilerVersion>
+		<compilerVersion>11</compilerVersion>
 		<maven.compiler.source>${compilerVersion}</maven.compiler.source>
 		<maven.compiler.target>${compilerVersion}</maven.compiler.target>
 		<args4j.version>2.33</args4j.version>

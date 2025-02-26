@@ -19,10 +19,12 @@ limitations under the License.
 package org.ardulink.gui;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -35,11 +37,12 @@ import javax.swing.border.EmptyBorder;
 
 import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
+import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.SignalButton;
 import org.ardulink.gui.customcomponents.ToggleSignalButton;
-import org.ardulink.legacy.Link;
 import org.ardulink.util.Lists;
+import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,10 +72,6 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 	private final JPanel buttonPanel;
 	private final JPanel setupPanel;
 	private final JPanel resultPanel;
-	private final ToggleSignalButton button1;
-	private final ToggleSignalButton button2;
-	private final ToggleSignalButton button3;
-	private final ToggleSignalButton button4;
 	private final SignalButton resultButton;
 
 	/**
@@ -126,7 +125,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
 		buttonPanel.add(connectionStatus);
 		linkables.add(connectionStatus);
-		btnConnect.addActionListener(e -> {
+		btnConnect.addActionListener(__ -> {
 			try {
 				setLink((genericConnectionPanel.createLink()));
 			} catch (Exception ex) {
@@ -142,10 +141,10 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		setupPanel = new JPanel();
 		controlPanel.add(setupPanel, BorderLayout.NORTH);
 
-		button1 = getToggleSignalButton(1);
-		button2 = getToggleSignalButton(2);
-		button3 = getToggleSignalButton(3);
-		button4 = getToggleSignalButton(4);
+		getToggleSignalButton(1);
+		getToggleSignalButton(2);
+		getToggleSignalButton(3);
+		getToggleSignalButton(4);
 
 		resultPanel = new JPanel();
 		controlPanel.add(resultPanel, BorderLayout.SOUTH);
@@ -158,7 +157,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		resultButton.setId("getResult");
 		resultButton.setValueVisible(false);
 
-		setLink(Link.NO_LINK);
+		setLink(NULL_LINK);
 	}
 
 	private ToggleSignalButton getToggleSignalButton(int index) {
@@ -177,21 +176,25 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 	}
 
 	private void disconnect() {
-		logger.info("Connection status: {}", !this.link.disconnect());
-		setLink(Link.NO_LINK);
+		try {
+			this.link.close();
+		} catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+		logger.info("Connection closed");
+		setLink(NULL_LINK);
 	}
 
 	@Override
 	public void setLink(Link link) {
-		org.ardulink.core.Link delegate = link.getDelegate();
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).removeConnectionListener(this);
+		if (this.link instanceof ConnectionBasedLink) {
+			((ConnectionBasedLink) this.link).removeConnectionListener(this);
 		}
 		this.link = link;
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).addConnectionListener(this);
+		if (this.link instanceof ConnectionBasedLink) {
+			((ConnectionBasedLink) this.link).addConnectionListener(this);
 		} else {
-			if (link == null || link == Link.NO_LINK) {
+			if (link == NULL_LINK) {
 				connectionLost();
 			} else {
 				reconnected();
@@ -199,11 +202,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 		}
 		for (Linkable linkable : linkables) {
-			if (linkable == resultButton && link != null && link != Link.NO_LINK) {
-				linkable.setLink(new WaitReplyLink(link.getDelegate(), this, "result"));
-			} else {
-				linkable.setLink(link);
-			}
+			linkable.setLink(link);
 		}
 	}
 

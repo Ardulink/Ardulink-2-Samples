@@ -18,11 +18,16 @@ limitations under the License.
 
 package org.ardulink.gui;
 
-import java.awt.Point;
+import static java.lang.String.format;
+import static org.ardulink.util.Preconditions.checkNotNull;
 
+import java.awt.Point;
+import java.io.IOException;
+
+import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
 import org.ardulink.gui.event.PositionListener;
-import org.ardulink.legacy.Link;
+import org.ardulink.util.Throwables;
 
 /**
  * [ardulinktitle] [ardulinkversion]
@@ -34,27 +39,26 @@ import org.ardulink.legacy.Link;
  */
 public class MotorDriver implements PositionListener, Linkable {
 
-	private Link link = null;
-	
-	private int maxSize = 255;
-	private int x = 0;
-	private int y = 0;
+	private Link link;
+
+	private int x;
+	private int y;
 	private String id = "none";
-	
-	private int rightPower = 0;
-	private int leftPower  =  0;
+
+	private int rightPower;
+	private int leftPower;
 	private String rightDirection = "F";
 	private String leftDirection = "F";
-	
+
 	@Override
 	public void setLink(Link link) {
-		this.link = link;
+		this.link = checkNotNull(link, "link must not be null");
 	}
 
 	@Override
 	public void positionChanged(PositionEvent e) {
 		synchronized (this) {
-			maxSize = e.getMaxSize();
+			e.getMaxSize();
 			Point p = e.getPosition();
 			x = p.x;
 			y = p.y;
@@ -68,33 +72,31 @@ public class MotorDriver implements PositionListener, Linkable {
 	private void computeMotorPower() {
 		// Motor power is computed with a simple Linear Transformation with this matrix
 		// -1 1
-		//  1 1
-		
+		// 1 1
+
 		rightPower = -x + y;
-		leftPower  =  x + y;
+		leftPower = x + y;
 		rightDirection = "F";
-		if(rightPower < 0) {
+		if (rightPower < 0) {
 			rightDirection = "B";
 			rightPower = -rightPower;
 		}
 		leftDirection = "F";
-		if(leftPower < 0) {
+		if (leftPower < 0) {
 			leftDirection = "B";
 			leftPower = -leftPower;
 		}
-		if(rightPower > 255) {
-			rightPower = 255;
-		}
-		if(leftPower > 255) {
-			leftPower = 255;
-		}
+		rightPower = Math.min(255, rightPower);
+		leftPower = Math.min(255, leftPower);
 	}
 
 	private void sendMessage() {
-		if(link != null) {
-			String message = id + "(" + leftDirection + leftPower + ")[" + rightDirection + rightPower + "]";
-			System.out.println(message);
+		String message = format("%s(%s%d)[%s%d]", id, leftDirection, leftPower, rightDirection, rightPower);
+		System.out.println(message);
+		try {
 			link.sendCustomMessage(message);
+		} catch (IOException e) {
+			throw Throwables.propagate(e);
 		}
 	}
 }

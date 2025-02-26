@@ -19,6 +19,7 @@ limitations under the License.
 package org.ardulink.gui;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
 
 import java.awt.BorderLayout;
@@ -26,6 +27,7 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -39,11 +41,11 @@ import javax.swing.border.EmptyBorder;
 
 import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
+import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.SignalButton;
-import org.ardulink.legacy.Link;
-import org.ardulink.legacy.Link.LegacyLinkAdapter;
 import org.ardulink.util.Lists;
+import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * [adsense]
  *
  */
-public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, Linkable {
+public class SimpleSmartCarDriver extends JFrame implements Linkable {
 
 	private static final Logger logger = LoggerFactory.getLogger(SimpleSmartCarDriver.class);
 
@@ -85,6 +87,22 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 	private static final ImageIcon BACK_ICON = new ImageIcon(SimpleSmartCarDriver.class.getResource(BACK_ICON_NAME));
 	private final JTabbedPane tabbedPane;
 	private final JPanel buttonPanel;
+	private final ConnectionListener connectionListener = new ConnectionListener() {
+
+		@Override
+		public void reconnected() {
+			genericConnectionPanel.setEnabled(false);
+			btnConnect.setEnabled(false);
+			btnDisconnect.setEnabled(true);
+		}
+
+		@Override
+		public void connectionLost() {
+			genericConnectionPanel.setEnabled(true);
+			btnConnect.setEnabled(true);
+			btnDisconnect.setEnabled(false);
+		}
+	};
 
 	/**
 	 * Launch the application.
@@ -131,13 +149,21 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 
 		btnDisconnect = new JButton("Disconnect");
 		buttonPanel.add(btnDisconnect);
-		btnDisconnect.addActionListener(e -> disconnect());
+		btnDisconnect.addActionListener(__ -> {
+			try {
+				this.link.close();
+			} catch (IOException e) {
+				throw Throwables.propagate(e);
+			}
+			logger.info("Connection closed");
+			setLink(NULL_LINK);
+		});
 		btnDisconnect.setEnabled(false);
 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
 		buttonPanel.add(connectionStatus);
 		linkables.add(connectionStatus);
-		btnConnect.addActionListener(e -> {
+		btnConnect.addActionListener(__ -> {
 			try {
 				setLink(genericConnectionPanel.createLink());
 			} catch (Exception ex) {
@@ -208,47 +234,26 @@ public class SimpleSmartCarDriver extends JFrame implements ConnectionListener, 
 		gbcBtnDown.gridy = 2;
 		controlPanel.add(btnBack, gbcBtnDown);
 
-		setLink(Link.NO_LINK);
+		setLink(NULL_LINK);
 	}
 
 	@Override
 	public void setLink(Link link) {
-		org.ardulink.core.Link delegate = link.getDelegate();
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).removeConnectionListener(this);
+		if (this.link instanceof ConnectionBasedLink) {
+			((ConnectionBasedLink) this.link).removeConnectionListener(connectionListener);
 		}
 		this.link = link;
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).addConnectionListener(this);
+		if (this.link instanceof ConnectionBasedLink) {
+			((ConnectionBasedLink) this.link).addConnectionListener(connectionListener);
+		}
+		if (this.link == NULL_LINK) {
+			connectionListener.connectionLost();
 		} else {
-			if (link == null || link == Link.NO_LINK) {
-				connectionLost();
-			} else {
-				reconnected();
-			}
-
+			connectionListener.reconnected();
 		}
 		for (Linkable linkable : linkables) {
 			linkable.setLink(link);
 		}
 	}
 
-	private void disconnect() {
-		logger.info("Connection status: {}", !this.link.disconnect());
-		setLink(Link.NO_LINK);
-	}
-
-	@Override
-	public void reconnected() {
-		genericConnectionPanel.setEnabled(false);
-		btnConnect.setEnabled(false);
-		btnDisconnect.setEnabled(true);
-	}
-
-	@Override
-	public void connectionLost() {
-		genericConnectionPanel.setEnabled(true);
-		btnConnect.setEnabled(true);
-		btnDisconnect.setEnabled(false);
-	}
 }
