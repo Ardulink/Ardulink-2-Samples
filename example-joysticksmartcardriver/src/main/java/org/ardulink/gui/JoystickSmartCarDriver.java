@@ -76,16 +76,18 @@ public class JoystickSmartCarDriver extends JFrame implements Linkable {
 
 		@Override
 		public void reconnected() {
-			genericConnectionPanel.setEnabled(false);
-			btnConnect.setEnabled(false);
-			btnDisconnect.setEnabled(true);
+			connected(true);
 		}
 
 		@Override
 		public void connectionLost() {
-			genericConnectionPanel.setEnabled(true);
-			btnConnect.setEnabled(true);
-			btnDisconnect.setEnabled(false);
+			connected(false);
+		}
+
+		private void connected(boolean isConnected) {
+			genericConnectionPanel.setEnabled(!isConnected);
+			btnConnect.setEnabled(!isConnected);
+			btnDisconnect.setEnabled(isConnected);
 		}
 	};
 
