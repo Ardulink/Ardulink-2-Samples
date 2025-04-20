@@ -24,11 +24,11 @@ import static java.lang.String.format;
 import static org.ardulink.util.Preconditions.checkNotNull;
 import static org.ardulink.util.anno.LapsedWith.JDK14;
 
-import java.awt.Point;
 import java.io.IOException;
 
 import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
+import org.ardulink.gui.event.PositionEvent.Point;
 import org.ardulink.gui.event.PositionListener;
 import org.ardulink.util.Throwables;
 import org.ardulink.util.anno.LapsedWith;
@@ -45,18 +45,18 @@ import org.slf4j.LoggerFactory;
  */
 public class MotorDriver implements PositionListener, Linkable {
 
-	private static enum Direction {
-		FORWARD('F'), BACKWARDS('B');
-
-		private char value;
-
-		private Direction(char value) {
-			this.value = value;
-		}
-	}
-
 	@LapsedWith(value = JDK14, module = "records")
 	private static class MotorPower {
+
+		private static enum Direction {
+			FORWARD('F'), BACKWARDS('B');
+
+			private char value;
+
+			private Direction(char value) {
+				this.value = value;
+			}
+		}
 
 		private final int rightPower;
 		private final int leftPower;
