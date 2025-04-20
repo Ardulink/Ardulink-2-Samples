@@ -7,8 +7,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.awt.Point;
 import java.io.IOException;
 
-import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
+import org.ardulink.legacy.Link;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
