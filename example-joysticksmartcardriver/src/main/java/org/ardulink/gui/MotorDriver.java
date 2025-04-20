@@ -12,17 +12,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-
 */
 
 package org.ardulink.gui;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.min;
+import static java.lang.String.format;
+import static org.ardulink.util.anno.LapsedWith.JDK14;
 
 import java.awt.Point;
 
 import org.ardulink.gui.event.PositionEvent;
 import org.ardulink.gui.event.PositionListener;
 import org.ardulink.legacy.Link;
+import org.ardulink.util.anno.LapsedWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * [ardulinktitle] [ardulinkversion]
@@ -34,67 +40,63 @@ import org.ardulink.legacy.Link;
  */
 public class MotorDriver implements PositionListener, Linkable {
 
-	private Link link = null;
-	
-	private int maxSize = 255;
-	private int x = 0;
-	private int y = 0;
-	private String id = "none";
-	
-	private int rightPower = 0;
-	private int leftPower  =  0;
-	private String rightDirection = "F";
-	private String leftDirection = "F";
-	
+	private static enum Direction {
+		FORWARD('F'), BACKWARDS('B');
+
+		private char value;
+
+		private Direction(char value) {
+			this.value = value;
+		}
+	}
+
+	@LapsedWith(value = JDK14, module = "records")
+	private static class MotorPower {
+
+		private final int rightPower;
+		private final int leftPower;
+		private final Direction rightDirection;
+		private final Direction leftDirection;
+
+		public MotorPower(int x, int y) {
+			// Motor power is computed with a simple Linear Transformation with this matrix
+			// -1 1
+			// 1 1
+
+			int localRightPower = -x + y;
+			int localLeftPower = x + y;
+			rightDirection = direction(localRightPower);
+			leftDirection = direction(localLeftPower);
+			rightPower = min(255, abs(localRightPower));
+			leftPower = min(255, abs(localLeftPower));
+		}
+
+		private static Direction direction(int power) {
+			return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+		}
+
+	}
+
+	private static final Logger logger = LoggerFactory.getLogger(MotorDriver.class);
+
+	private Link link;
+
 	@Override
 	public void setLink(Link link) {
 		this.link = link;
 	}
 
 	@Override
-	public void positionChanged(PositionEvent e) {
-		synchronized (this) {
-			maxSize = e.getMaxSize();
-			Point p = e.getPosition();
-			x = p.x;
-			y = p.y;
-			id = e.getId();
-
-			computeMotorPower();
-			sendMessage();
-		}
+	public void positionChanged(PositionEvent event) {
+		Point point = event.getPosition();
+		// TODO shoudn't we check event.getMaxSize()?
+		sendMessage(event.getId(), new MotorPower(point.x, point.y));
 	}
 
-	private void computeMotorPower() {
-		// Motor power is computed with a simple Linear Transformation with this matrix
-		// -1 1
-		//  1 1
-		
-		rightPower = -x + y;
-		leftPower  =  x + y;
-		rightDirection = "F";
-		if(rightPower < 0) {
-			rightDirection = "B";
-			rightPower = -rightPower;
-		}
-		leftDirection = "F";
-		if(leftPower < 0) {
-			leftDirection = "B";
-			leftPower = -leftPower;
-		}
-		if(rightPower > 255) {
-			rightPower = 255;
-		}
-		if(leftPower > 255) {
-			leftPower = 255;
-		}
-	}
-
-	private void sendMessage() {
-		if(link != null) {
-			String message = id + "(" + leftDirection + leftPower + ")[" + rightDirection + rightPower + "]";
-			System.out.println(message);
-			link.sendCustomMessage(message);
-		}
+	private void sendMessage(String id, MotorPower motorPower) {
+		String message = format("%s(%s%d)[%s%d]", id, motorPower.leftDirection.value, motorPower.leftPower,
+				motorPower.rightDirection.value, motorPower.rightPower);
+		logger.info(message);
+		link.sendCustomMessage(message);
 	}
 }
