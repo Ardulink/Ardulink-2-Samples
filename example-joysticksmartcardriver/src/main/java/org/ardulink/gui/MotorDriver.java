@@ -98,12 +98,9 @@ public class MotorDriver implements PositionListener, Linkable {
 	@Override
 	public void positionChanged(PositionEvent event) {
 		Point point = event.position();
-		// TODO shoudn't we check event.getMaxSize()?
-		sendMessage(event.id(), new MotorPower(point.x, point.y));
-	}
-
-	private void sendMessage(String id, MotorPower motorPower) {
-		String message = format("%s(%s)[%s]", id, toString(motorPower.left), toString(motorPower.right));
+		MotorPower motorPower = new MotorPower(point.x, point.y);
+		// TODO shoudn't we check event.maxSize()?
+		String message = format("%s(%s)[%s]", event.id(), toString(motorPower.left), toString(motorPower.right));
 		logger.info(message);
 		try {
 			link.sendCustomMessage(message);
