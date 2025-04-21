@@ -17,15 +17,16 @@ limitations under the License.
 package org.ardulink.gui;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.min;
 import static java.lang.String.format;
 import static org.ardulink.util.anno.LapsedWith.JDK14;
 
-import java.awt.Point;
+import java.io.IOException;
 
+import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
+import org.ardulink.gui.event.PositionEvent.Point;
 import org.ardulink.gui.event.PositionListener;
-import org.ardulink.legacy.Link;
+import org.ardulink.util.Throwables;
 import org.ardulink.util.anno.LapsedWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,39 +41,44 @@ import org.slf4j.LoggerFactory;
  */
 public class MotorDriver implements PositionListener, Linkable {
 
-	private static enum Direction {
-		FORWARD('F'), BACKWARDS('B');
-
-		private char value;
-
-		private Direction(char value) {
-			this.value = value;
-		}
-	}
-
 	@LapsedWith(value = JDK14, module = "records")
 	private static class MotorPower {
 
-		private final int rightPower;
-		private final int leftPower;
-		private final Direction rightDirection;
-		private final Direction leftDirection;
+		private static enum Direction {
+			FORWARD('F'), BACKWARDS('B');
+
+			private char value;
+
+			private Direction(char value) {
+				this.value = value;
+			}
+
+			private static Direction directionOf(int power) {
+				return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+			}
+		}
+
+		@LapsedWith(value = JDK14, module = "records")
+		private static class MotorSetting {
+
+			private final int power;
+			private final Direction direction;
+
+			public MotorSetting(int power) {
+				this.power = abs(power);
+				this.direction = Direction.directionOf(power);
+			}
+
+		}
+
+		private final MotorSetting left, right;
 
 		public MotorPower(int x, int y) {
 			// Motor power is computed with a simple Linear Transformation with this matrix
-			// -1 1
 			// 1 1
-
-			int localRightPower = -x + y;
-			int localLeftPower = x + y;
-			rightDirection = direction(localRightPower);
-			leftDirection = direction(localLeftPower);
-			rightPower = min(255, abs(localRightPower));
-			leftPower = min(255, abs(localLeftPower));
-		}
-
-		private static Direction direction(int power) {
-			return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+			// -1 1
+			left = new MotorSetting(x + y);
+			right = new MotorSetting(-x + y);
 		}
 
 	}
@@ -88,15 +94,20 @@ public class MotorDriver implements PositionListener, Linkable {
 
 	@Override
 	public void positionChanged(PositionEvent event) {
-		Point point = event.getPosition();
-		// TODO shoudn't we check event.getMaxSize()?
-		sendMessage(event.getId(), new MotorPower(point.x, point.y));
+		Point point = event.position();
+		try {
+			// TODO shoudn't we check event.maxSize()?
+			MotorPower motorPower = new MotorPower(point.x, point.y);
+			String message = format("%s(%s)[%s]", event.id(), toString(motorPower.left), toString(motorPower.right));
+			logger.info(message);
+			link.sendCustomMessage(message);
+		} catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
 	}
 
-	private void sendMessage(String id, MotorPower motorPower) {
-		String message = format("%s(%s%d)[%s%d]", id, motorPower.leftDirection.value, motorPower.leftPower,
-				motorPower.rightDirection.value, motorPower.rightPower);
-		logger.info(message);
-		link.sendCustomMessage(message);
+	private static String toString(MotorPower.MotorSetting motorSetting) {
+		return format("%s%d", motorSetting.direction.value, motorSetting.power);
 	}
+
 }
