@@ -19,7 +19,6 @@ limitations under the License.
 package org.ardulink.gui;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.min;
 import static java.lang.String.format;
 import static org.ardulink.util.Preconditions.checkNotNull;
 import static org.ardulink.util.anno.LapsedWith.JDK14;
@@ -56,28 +55,33 @@ public class MotorDriver implements PositionListener, Linkable {
 			private Direction(char value) {
 				this.value = value;
 			}
+
+			private static Direction directionOf(int power) {
+				return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+			}
 		}
 
-		private final int rightPower;
-		private final int leftPower;
-		private final Direction rightDirection;
-		private final Direction leftDirection;
+		@LapsedWith(value = JDK14, module = "records")
+		private static class MotorSetting {
+
+			private final int power;
+			private final Direction direction;
+
+			public MotorSetting(int power) {
+				this.power = abs(power);
+				this.direction = Direction.directionOf(power);
+			}
+
+		}
+
+		private final MotorSetting left, right;
 
 		public MotorPower(int x, int y) {
 			// Motor power is computed with a simple Linear Transformation with this matrix
-			// -1 1
 			// 1 1
-
-			int localRightPower = -x + y;
-			int localLeftPower = x + y;
-			rightDirection = direction(localRightPower);
-			leftDirection = direction(localLeftPower);
-			rightPower = min(255, abs(localRightPower));
-			leftPower = min(255, abs(localLeftPower));
-		}
-
-		private static Direction direction(int power) {
-			return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+			// -1 1
+			left = new MotorSetting(x + y);
+			right = new MotorSetting(-x + y);
 		}
 
 	}
@@ -99,14 +103,17 @@ public class MotorDriver implements PositionListener, Linkable {
 	}
 
 	private void sendMessage(String id, MotorPower motorPower) {
-		String message = format("%s(%s%d)[%s%d]", id, motorPower.leftDirection.value, motorPower.leftPower,
-				motorPower.rightDirection.value, motorPower.rightPower);
+		String message = format("%s(%s)[%s]", id, toString(motorPower.left), toString(motorPower.right));
 		logger.info(message);
 		try {
 			link.sendCustomMessage(message);
 		} catch (IOException e) {
 			throw Throwables.propagate(e);
 		}
+	}
+
+	private static String toString(MotorPower.MotorSetting motorSetting) {
+		return format("%s%d", motorSetting.direction.value, motorSetting.power);
 	}
 
 }
