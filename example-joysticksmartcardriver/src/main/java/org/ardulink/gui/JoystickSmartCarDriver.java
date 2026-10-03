@@ -21,12 +21,11 @@ package org.ardulink.gui;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
-import static org.ardulink.util.Preconditions.checkNotNull;
+import static org.ardulink.gui.util.LinkReplacer.withConnectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.io.IOException;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -36,12 +35,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
 import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.joystick.ModifiableJoystick;
-import org.ardulink.util.Lists;
 import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +59,6 @@ public class JoystickSmartCarDriver extends JFrame implements Linkable {
 
 	private final JPanel contentPane;
 	private Link link;
-	private final List<Linkable> linkables = Lists.newArrayList();
 
 	private final ConnectionPanel genericConnectionPanel;
 	private final JButton btnConnect;
@@ -147,9 +143,7 @@ public class JoystickSmartCarDriver extends JFrame implements Linkable {
 		});
 		btnDisconnect.setEnabled(false);
 
-		ConnectionStatus connectionStatus = new ConnectionStatus();
-		buttonPanel.add(connectionStatus);
-		linkables.add(connectionStatus);
+		buttonPanel.add(new ConnectionStatus());
 
 		btnConnect.addActionListener(__ -> {
 			try {
@@ -165,35 +159,16 @@ public class JoystickSmartCarDriver extends JFrame implements Linkable {
 		controlPanel.setLayout(new BorderLayout(0, 0));
 
 		joystick = new ModifiableJoystick();
-		// not use Joystick link, PositionEvents will be captured and managed
-		// with a specific class
-		joystick.setLink(null);
 		joystick.setId("joy");
 		joystick.addPositionListener(motorDriver);
 		controlPanel.add(joystick, BorderLayout.CENTER);
-
-		linkables.add(motorDriver);
 
 		setLink(NULL_LINK);
 	}
 
 	@Override
 	public void setLink(Link link) {
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).removeConnectionListener(connectionListener);
-		}
-		this.link = checkNotNull(link, "link must not be null");
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).addConnectionListener(connectionListener);
-		}
-		if (this.link == NULL_LINK) {
-			connectionListener.connectionLost();
-		} else {
-			connectionListener.reconnected();
-		}
-		for (Linkable linkable : linkables) {
-			linkable.setLink(link);
-		}
+		this.link = withConnectionListener(connectionListener).replace(this.link).with(link);
 	}
 
 }

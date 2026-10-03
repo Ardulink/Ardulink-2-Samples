@@ -21,6 +21,7 @@ package org.ardulink.gui;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
+import static org.ardulink.gui.util.LinkReplacer.withConnectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -28,7 +29,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.IOException;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -39,12 +39,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
 import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.SignalButton;
-import org.ardulink.util.Lists;
 import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +63,6 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 
 	private final JPanel contentPane;
 	private Link link;
-	private final List<Linkable> linkables = Lists.newArrayList();
 
 	private final ConnectionPanel genericConnectionPanel;
 	private final JButton btnConnect;
@@ -160,9 +157,7 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 		});
 		btnDisconnect.setEnabled(false);
 
-		ConnectionStatus connectionStatus = new ConnectionStatus();
-		buttonPanel.add(connectionStatus);
-		linkables.add(connectionStatus);
+		buttonPanel.add(new ConnectionStatus());
 		btnConnect.addActionListener(__ -> {
 			try {
 				setLink(genericConnectionPanel.createLink());
@@ -185,7 +180,6 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 		btnAhead.setValue("100");
 		btnAhead.setValueLabel("Strength");
 		btnAhead.setIcon(AHEAD_ICON);
-		linkables.add(btnAhead);
 		GridBagConstraints gbcBtnUp = new GridBagConstraints();
 		gbcBtnUp.anchor = GridBagConstraints.NORTHWEST;
 		gbcBtnUp.insets = new Insets(0, 0, 0, 5);
@@ -199,7 +193,6 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 		btnLeft.setValue("100");
 		btnLeft.setValueLabel("Strength");
 		btnLeft.setIcon(LEFT_ICON);
-		linkables.add(btnLeft);
 		GridBagConstraints gbcBtnLeft = new GridBagConstraints();
 		gbcBtnLeft.anchor = GridBagConstraints.NORTHWEST;
 		gbcBtnLeft.insets = new Insets(0, 0, 0, 5);
@@ -213,7 +206,6 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 		btnRight.setValue("100");
 		btnRight.setValueLabel("Strength");
 		btnRight.setIcon(RIGHT_ICON);
-		linkables.add(btnRight);
 		GridBagConstraints gbcBtnRight = new GridBagConstraints();
 		gbcBtnRight.anchor = GridBagConstraints.NORTHWEST;
 		gbcBtnRight.insets = new Insets(0, 0, 0, 5);
@@ -227,7 +219,6 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 		btnBack.setValue("100");
 		btnBack.setValueLabel("Strength");
 		btnBack.setIcon(BACK_ICON);
-		linkables.add(btnBack);
 		GridBagConstraints gbcBtnDown = new GridBagConstraints();
 		gbcBtnDown.anchor = GridBagConstraints.NORTHWEST;
 		gbcBtnDown.gridx = 1;
@@ -239,21 +230,7 @@ public class SimpleSmartCarDriver extends JFrame implements Linkable {
 
 	@Override
 	public void setLink(Link link) {
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).removeConnectionListener(connectionListener);
-		}
-		this.link = link;
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).addConnectionListener(connectionListener);
-		}
-		if (this.link == NULL_LINK) {
-			connectionListener.connectionLost();
-		} else {
-			connectionListener.reconnected();
-		}
-		for (Linkable linkable : linkables) {
-			linkable.setLink(link);
-		}
+		this.link = withConnectionListener(connectionListener).replace(this.link).with(link);
 	}
 
 }

@@ -21,11 +21,11 @@ package org.ardulink.gui;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
+import static org.ardulink.gui.util.LinkReplacer.withConnectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.io.IOException;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -35,13 +35,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
 import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.SignalButton;
 import org.ardulink.gui.customcomponents.ToggleSignalButton;
-import org.ardulink.util.Lists;
 import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * [adsense]
  *
  */
-public class ButtonQuest extends JFrame implements ConnectionListener, Linkable {
+public class ButtonQuest extends JFrame implements Linkable {
 
 	private static final long serialVersionUID = 1402473246181814940L;
 
@@ -62,7 +60,6 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 	private final JPanel contentPane;
 	private Link link;
-	private final List<Linkable> linkables = Lists.newArrayList();
 
 	private final ConnectionPanel genericConnectionPanel;
 	private final JButton btnConnect;
@@ -73,6 +70,26 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 	private final JPanel setupPanel;
 	private final JPanel resultPanel;
 	private final SignalButton resultButton;
+
+	private final ConnectionListener connectionListener = new ConnectionListener() {
+
+		@Override
+		public void reconnected() {
+			connected(true);
+		}
+
+		@Override
+		public void connectionLost() {
+			connected(false);
+		}
+
+		private void connected(boolean connected) {
+			genericConnectionPanel.setEnabled(!connected);
+			btnConnect.setEnabled(!connected);
+			btnDisconnect.setEnabled(connected);
+		}
+
+	};
 
 	/**
 	 * Launch the application.
@@ -124,7 +141,6 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 		ConnectionStatus connectionStatus = new ConnectionStatus();
 		buttonPanel.add(connectionStatus);
-		linkables.add(connectionStatus);
 		btnConnect.addActionListener(__ -> {
 			try {
 				setLink((genericConnectionPanel.createLink()));
@@ -150,7 +166,6 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 		controlPanel.add(resultPanel, BorderLayout.SOUTH);
 
 		resultButton = new SignalButton();
-		linkables.add(resultButton);
 		resultPanel.add(resultButton);
 
 		resultButton.setButtonText("Get Result");
@@ -162,7 +177,6 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 	private ToggleSignalButton getToggleSignalButton(int index) {
 		ToggleSignalButton button = new ToggleSignalButton();
-		linkables.add(button);
 		setupPanel.add(button);
 		button.setValueOnVisible(false);
 		button.setValueOffVisible(false);
@@ -187,36 +201,7 @@ public class ButtonQuest extends JFrame implements ConnectionListener, Linkable 
 
 	@Override
 	public void setLink(Link link) {
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).removeConnectionListener(this);
-		}
-		this.link = link;
-		if (this.link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) this.link).addConnectionListener(this);
-		} else {
-			if (link == NULL_LINK) {
-				connectionLost();
-			} else {
-				reconnected();
-			}
-
-		}
-		for (Linkable linkable : linkables) {
-			linkable.setLink(link);
-		}
+		this.link = withConnectionListener(connectionListener).replace(this.link).with(link);
 	}
 
-	@Override
-	public void reconnected() {
-		genericConnectionPanel.setEnabled(false);
-		btnConnect.setEnabled(false);
-		btnDisconnect.setEnabled(true);
-	}
-
-	@Override
-	public void connectionLost() {
-		genericConnectionPanel.setEnabled(true);
-		btnConnect.setEnabled(true);
-		btnDisconnect.setEnabled(false);
-	}
 }
