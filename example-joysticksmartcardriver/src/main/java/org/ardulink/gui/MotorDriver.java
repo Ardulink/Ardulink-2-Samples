@@ -18,13 +18,16 @@ package org.ardulink.gui;
 
 import static java.lang.Math.abs;
 import static java.lang.String.format;
+import static org.ardulink.util.Preconditions.checkNotNull;
 import static org.ardulink.util.anno.LapsedWith.JDK14;
 
-import java.awt.Point;
+import java.io.IOException;
 
+import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
+import org.ardulink.gui.event.PositionEvent.Point;
 import org.ardulink.gui.event.PositionListener;
-import org.ardulink.legacy.Link;
+import org.ardulink.util.Throwables;
 import org.ardulink.util.anno.LapsedWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,17 +90,21 @@ public class MotorDriver implements PositionListener, Linkable {
 
 	@Override
 	public void setLink(Link link) {
-		this.link = link;
+		this.link = checkNotNull(link, "link must not be null");
 	}
 
 	@Override
 	public void positionChanged(PositionEvent event) {
-		Point point = event.getPosition();
-		// TODO shoudn't we check event.maxSize()?
+		Point point = event.position();
 		MotorPower motorPower = new MotorPower(point.x, point.y);
-		String message = format("%s(%s)[%s]", event.getId(), toString(motorPower.left), toString(motorPower.right));
+		// TODO shoudn't we check event.maxSize()?
+		String message = format("%s(%s)[%s]", event.id(), toString(motorPower.left), toString(motorPower.right));
 		logger.info(message);
-		link.sendCustomMessage(message);
+		try {
+			link.sendCustomMessage(message);
+		} catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
 	}
 
 	private static String toString(MotorPower.MotorSetting motorSetting) {

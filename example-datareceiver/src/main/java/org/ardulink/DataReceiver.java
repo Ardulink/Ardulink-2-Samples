@@ -21,6 +21,8 @@ import static java.lang.String.format;
 import static org.ardulink.core.Pin.analogPin;
 import static org.ardulink.core.Pin.digitalPin;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.ardulink.core.Connection;
 import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.Link;
@@ -48,7 +50,7 @@ public class DataReceiver {
 	private boolean verbose;
 
 	@Option(name = "-connection", usage = "Connection URI to the arduino")
-	private String connection = "ardulink://serial";
+	private String connectionUri;
 
 	@Option(name = "-d", aliases = "--digital", usage = "Digital pins to listen to")
 	private int[] digitals = new int[] { 2 };
@@ -62,10 +64,7 @@ public class DataReceiver {
 	@Option(name = "-msgd", aliases = "--digitalMessage", usage = "Message format for digital pins")
 	private String msgDigital = "PIN state changed. Digital PIN: %s Value: %s";
 
-	private Link link;
-
-	private static final Logger logger = LoggerFactory
-			.getLogger(DataReceiver.class);
+	private static final Logger logger = LoggerFactory.getLogger(DataReceiver.class);
 
 	public static void main(String[] args) throws Exception {
 		new DataReceiver().doMain(args);
@@ -80,23 +79,26 @@ public class DataReceiver {
 			cmdLineParser.printUsage(System.err);
 			return;
 		}
-		work();
+		try (Link link = connectionUri == null ? Links.getDefault() : Links.getLink(connectionUri)) {
+			link.addListener(eventListener());
+
+			for (int analog : analogs) {
+				link.startListening(analogPin(analog));
+			}
+			for (int digital : digitals) {
+				link.startListening(digitalPin(digital));
+			}
+
+			if (verbose && link instanceof ConnectionBasedLink) {
+				((ConnectionBasedLink) link).getConnection().addListener(rawDataListener());
+			}
+			
+			waitForever();  
+		}
 	}
 
-	private void work() throws Exception {
-		this.link = Links.getLink(connection);
-		link.addListener(eventListener());
-
-		for (int analog : analogs) {
-			link.startListening(analogPin(analog));
-		}
-		for (int digital : digitals) {
-			link.startListening(digitalPin(digital));
-		}
-
-		if (verbose && link instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) link).getConnection().addListener(rawDataListener());
-		}
+	private void waitForever() throws InterruptedException {
+		new CountDownLatch(1).await();
 	}
 
 	private EventListener eventListener() {

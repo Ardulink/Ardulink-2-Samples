@@ -19,11 +19,13 @@ limitations under the License.
 package org.ardulink.gui;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static org.ardulink.core.NullLink.NULL_LINK;
 import static org.ardulink.gui.facility.LAFUtil.setLookAndFeel;
+import static org.ardulink.gui.util.LinkReplacer.withConnectionListener;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.util.List;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -33,13 +35,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.ardulink.core.ConnectionBasedLink;
 import org.ardulink.core.ConnectionListener;
+import org.ardulink.core.Link;
 import org.ardulink.gui.connectionpanel.ConnectionPanel;
 import org.ardulink.gui.customcomponents.joystick.ModifiableJoystick;
-import org.ardulink.legacy.Link;
-import org.ardulink.legacy.Link.LegacyLinkAdapter;
-import org.ardulink.util.Lists;
+import org.ardulink.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * [adsense]
  *
  */
-public class JoystickSmartCarDriver extends JFrame implements ConnectionListener, Linkable {
+public class JoystickSmartCarDriver extends JFrame implements Linkable {
 
 	private static final long serialVersionUID = 1402473246181814940L;
 
@@ -59,7 +59,6 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 
 	private final JPanel contentPane;
 	private Link link;
-	private final List<Linkable> linkables = Lists.newArrayList();
 
 	private final ConnectionPanel genericConnectionPanel;
 	private final JButton btnConnect;
@@ -69,6 +68,24 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 	private final MotorDriver motorDriver = new MotorDriver();
 	private final JTabbedPane tabbedPane;
 	private final JPanel buttonPanel;
+	private final ConnectionListener connectionListener = new ConnectionListener() {
+
+		@Override
+		public void reconnected() {
+			connected(true);
+		}
+
+		@Override
+		public void connectionLost() {
+			connected(false);
+		}
+
+		private void connected(boolean isConnected) {
+			genericConnectionPanel.setEnabled(!isConnected);
+			btnConnect.setEnabled(!isConnected);
+			btnDisconnect.setEnabled(isConnected);
+		}
+	};
 
 	/**
 	 * Launch the application.
@@ -115,19 +132,25 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 
 		btnDisconnect = new JButton("Disconnect");
 		buttonPanel.add(btnDisconnect);
-		btnDisconnect.addActionListener(e -> disconnect());
+		btnDisconnect.addActionListener(__ -> {
+			try {
+				this.link.close();
+			} catch (IOException e) {
+				throw Throwables.propagate(e);
+			}
+			logger.info("Connection closed");
+			setLink(NULL_LINK);
+		});
 		btnDisconnect.setEnabled(false);
 
-		ConnectionStatus connectionStatus = new ConnectionStatus();
-		buttonPanel.add(connectionStatus);
-		linkables.add(connectionStatus);
+		buttonPanel.add(new ConnectionStatus());
 
-		btnConnect.addActionListener(e -> {
+		btnConnect.addActionListener(__ -> {
 			try {
 				setLink((genericConnectionPanel.createLink()));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, ex.getMessage(), "Error", ERROR_MESSAGE);
+			} catch (Exception e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(JoystickSmartCarDriver.this, e.getMessage(), "Error", ERROR_MESSAGE);
 			}
 		});
 
@@ -136,56 +159,16 @@ public class JoystickSmartCarDriver extends JFrame implements ConnectionListener
 		controlPanel.setLayout(new BorderLayout(0, 0));
 
 		joystick = new ModifiableJoystick();
-		// not use Joystick link, PositionEvents will be captured and managed
-		// with a specific class
-		joystick.setLink(null);
 		joystick.setId("joy");
 		joystick.addPositionListener(motorDriver);
 		controlPanel.add(joystick, BorderLayout.CENTER);
 
-		linkables.add(motorDriver);
-
-		setLink(Link.NO_LINK);
-	}
-
-	private void disconnect() {
-		logger.info("Connection status: {}", !this.link.disconnect());
-		setLink(Link.NO_LINK);
+		setLink(NULL_LINK);
 	}
 
 	@Override
 	public void setLink(Link link) {
-		org.ardulink.core.Link delegate = link.getDelegate();
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).removeConnectionListener(this);
-		}
-		this.link = link;
-		if (delegate instanceof ConnectionBasedLink) {
-			((ConnectionBasedLink) delegate).addConnectionListener(this);
-		} else {
-			if (link == null || link == Link.NO_LINK) {
-				connectionLost();
-			} else {
-				reconnected();
-			}
-
-		}
-		for (Linkable linkable : linkables) {
-			linkable.setLink(link);
-		}
+		this.link = withConnectionListener(connectionListener).replace(this.link).with(link);
 	}
 
-	@Override
-	public void reconnected() {
-		genericConnectionPanel.setEnabled(false);
-		btnConnect.setEnabled(false);
-		btnDisconnect.setEnabled(true);
-	}
-
-	@Override
-	public void connectionLost() {
-		genericConnectionPanel.setEnabled(true);
-		btnConnect.setEnabled(true);
-		btnDisconnect.setEnabled(false);
-	}
 }
