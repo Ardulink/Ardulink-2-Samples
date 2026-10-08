@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ardulink</groupId>
 	<artifactId>examples</artifactId>
-	<version>2.1.1</version>
+	<version>2.3.1</version>
 	<packaging>pom</packaging>
 	<url>http://www.ardulink.org</url>
 
@@ -21,17 +21,31 @@
 
 	<developers>
 		<developer>
+			<name>Peter Fichtner</name>
+			<organization>Ardulink</organization>
+			<organizationUrl>http://www.ardulink.org</organizationUrl>
+			<roles>
+				<role>developer</role>
+				<role>maintainer</role>
+				<role>lead</role>
+				<role>architect</role>
+				<role>release manager</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
 			<name>Luciano Zu</name>
 			<email>luciano.zu@gmail.com</email>
 			<organization>Ardulink</organization>
 			<organizationUrl>http://www.ardulink.org</organizationUrl>
-		</developer>
-		<developer>
-			<name>Peter Fichtner</name>
-			<organization>Ardulink</organization>
-			<organizationUrl>http://www.ardulink.org</organizationUrl>
-		</developer>
-	</developers>
+			<roles>
+				<role>founder</role>
+				<role>former developer</role>
+			</roles>
+		</contributor>
+	</contributors>
 
 	<scm>
 		<url>https://github.com/Ardulink/Ardulink-2-Samples</url>
@@ -56,11 +70,14 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<compilerVersion>1.8</compilerVersion>
+		<compilerVersion>11</compilerVersion>
 		<maven.compiler.source>${compilerVersion}</maven.compiler.source>
 		<maven.compiler.target>${compilerVersion}</maven.compiler.target>
 		<args4j.version>2.37</args4j.version>
-		<slf4j.version>2.0.12</slf4j.version>
+		<slf4j.version>2.0.20</slf4j.version>
+		<junit.version>5.14.4</junit.version>
+		<assertj.version>3.27.7</assertj.version>
+		<mockito.version>5.24.0</mockito.version>
 	</properties>
 
 	<modules>
@@ -76,12 +93,12 @@
 			<plugins>
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.12.1</version>
+					<version>3.16.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.5.1</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -103,6 +120,23 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-jdk14</artifactId>
 				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${junit.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>${assertj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

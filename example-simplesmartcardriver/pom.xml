@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.ardulink</groupId>
 		<artifactId>examples</artifactId>
-		<version>2.1.1</version>
+		<version>2.3.1</version>
 	</parent>
 
 	<dependencies>
@@ -23,17 +23,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-legacy</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.ardulink</groupId>
 			<artifactId>ardulink-swing</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ardulink</groupId>
-			<artifactId>ardulink-core-bluetooth</artifactId>
+			<artifactId>ardulink-link-bluetooth</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>

@@ -12,17 +12,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-
 */
 
 package org.ardulink.gui;
 
-import java.awt.Point;
+import static java.lang.Math.abs;
+import static java.lang.String.format;
+import static org.ardulink.util.Preconditions.checkNotNull;
+import static org.ardulink.util.anno.LapsedWith.JDK14;
 
+import java.io.IOException;
+
+import org.ardulink.core.Link;
 import org.ardulink.gui.event.PositionEvent;
+import org.ardulink.gui.event.PositionEvent.Point;
 import org.ardulink.gui.event.PositionListener;
-import org.ardulink.legacy.Link;
+import org.ardulink.util.Throwables;
+import org.ardulink.util.anno.LapsedWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * [ardulinktitle] [ardulinkversion]
@@ -34,67 +42,73 @@ import org.ardulink.legacy.Link;
  */
 public class MotorDriver implements PositionListener, Linkable {
 
-	private Link link = null;
-	
-	private int maxSize = 255;
-	private int x = 0;
-	private int y = 0;
-	private String id = "none";
-	
-	private int rightPower = 0;
-	private int leftPower  =  0;
-	private String rightDirection = "F";
-	private String leftDirection = "F";
-	
+	@LapsedWith(value = JDK14, module = "records")
+	private static class MotorPower {
+
+		private static enum Direction {
+			FORWARD('F'), BACKWARDS('B');
+
+			private char value;
+
+			private Direction(char value) {
+				this.value = value;
+			}
+
+			private static Direction directionOf(int power) {
+				return power >= 0 ? Direction.FORWARD : Direction.BACKWARDS;
+			}
+		}
+
+		@LapsedWith(value = JDK14, module = "records")
+		private static class MotorSetting {
+
+			private final int power;
+			private final Direction direction;
+
+			public MotorSetting(int power) {
+				this.power = abs(power);
+				this.direction = Direction.directionOf(power);
+			}
+
+		}
+
+		private final MotorSetting left, right;
+
+		public MotorPower(int x, int y) {
+			// Motor power is computed with a simple Linear Transformation with this matrix
+			// 1 1
+			// -1 1
+			left = new MotorSetting(x + y);
+			right = new MotorSetting(-x + y);
+		}
+
+	}
+
+	private static final Logger logger = LoggerFactory.getLogger(MotorDriver.class);
+
+	private Link link;
+
 	@Override
 	public void setLink(Link link) {
-		this.link = link;
+		this.link = checkNotNull(link, "link must not be null");
 	}
 
 	@Override
-	public void positionChanged(PositionEvent e) {
-		synchronized (this) {
-			maxSize = e.getMaxSize();
-			Point p = e.getPosition();
-			x = p.x;
-			y = p.y;
-			id = e.getId();
-
-			computeMotorPower();
-			sendMessage();
-		}
-	}
-
-	private void computeMotorPower() {
-		// Motor power is computed with a simple Linear Transformation with this matrix
-		// -1 1
-		//  1 1
-		
-		rightPower = -x + y;
-		leftPower  =  x + y;
-		rightDirection = "F";
-		if(rightPower < 0) {
-			rightDirection = "B";
-			rightPower = -rightPower;
-		}
-		leftDirection = "F";
-		if(leftPower < 0) {
-			leftDirection = "B";
-			leftPower = -leftPower;
-		}
-		if(rightPower > 255) {
-			rightPower = 255;
-		}
-		if(leftPower > 255) {
-			leftPower = 255;
-		}
-	}
-
-	private void sendMessage() {
-		if(link != null) {
-			String message = id + "(" + leftDirection + leftPower + ")[" + rightDirection + rightPower + "]";
-			System.out.println(message);
+	public void positionChanged(PositionEvent event) {
+		Point point = event.position();
+		MotorPower motorPower = new MotorPower(point.x, point.y);
+		// TODO shoudn't we check event.maxSize()?
+		String message = format("%s(%s)[%s]", event.id(), toString(motorPower.left), toString(motorPower.right));
+		logger.info(message);
+		try {
 			link.sendCustomMessage(message);
+		} catch (IOException e) {
+			throw Throwables.propagate(e);
 		}
 	}
+
+	private static String toString(MotorPower.MotorSetting motorSetting) {
+		return format("%s%d", motorSetting.direction.value, motorSetting.power);
+	}
+
 }
